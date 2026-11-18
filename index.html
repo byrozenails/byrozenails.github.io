@@ -157,7 +157,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 20px 30
       <div class="err" id="errAvis"></div>
       <button class="btn full" id="envoyerAvis" type="submit">Envoyer mon avis</button>
     </form>
-    <p class="info hidden" id="merciAvis">Merci beaucoup 💕 Ton avis sera publié après validation.</p>
+    <p class="info hidden" id="merciAvis">Merci beaucoup 💕 Ton avis est publié !</p>
   </section>
 </main>
 
@@ -460,6 +460,7 @@ $('formAvis').onsubmit = function (e) {
   api('laisserAvis', d).then(function () {
     $('formAvis').classList.add('hidden');
     $('merciAvis').classList.remove('hidden');
+    chargerAvis();
   }).catch(function (err) {
     $('errAvis').textContent = err.message || 'Une erreur est survenue, réessaie.';
   }).then(function () {
