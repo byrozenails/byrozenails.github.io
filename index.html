@@ -59,7 +59,7 @@ textarea{resize:vertical;min-height:70px}
 .ok{text-align:center;padding:24px 6px}
 .check{width:68px;height:68px;border-radius:50%;background:var(--accent);color:#fff;font-size:2rem;display:grid;place-items:center;margin:0 auto 16px}
 .ok p{color:var(--muted);margin-top:8px}
-.hidden{display:none}
+.hidden{display:none!important}
 .hint{font-size:.82rem;color:#8a5a00;margin-top:6px}
 .ok p.alerte{background:#fff4e0;color:#7a4b00;border-radius:12px;padding:12px 14px;margin-top:16px;font-size:.9rem;text-align:left}
 .spin{display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s .8s linear infinite;vertical-align:middle}
@@ -74,6 +74,10 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 20px 30
 .avis-item .qui{font-weight:600;font-size:.92rem}
 .avis-item .quand{color:var(--muted);font-size:.78rem}
 .avis-item p{font-size:.92rem;white-space:pre-line}
+.avis-item img{display:block;width:100%;max-height:340px;object-fit:cover;border-radius:12px;margin-top:10px;background:var(--line)}
+.photo-pick{display:flex;justify-content:center;align-items:center;width:100%;padding:13px 14px;border:1px dashed var(--accent);border-radius:12px;background:#fff;color:var(--accent);font-weight:600;cursor:pointer}
+.photo-zone{display:flex;align-items:center;gap:12px}
+.photo-zone img{width:110px;height:110px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
 .etoiles{display:flex;gap:6px}
 .etoiles button{background:none;border:0;font-size:2rem;line-height:1;color:#d9cbbd;cursor:pointer;padding:0 2px}
 .etoiles button.on{color:#c49a6c}
@@ -154,6 +158,10 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 20px 30
       <input id="a-prenom" maxlength="40" autocomplete="given-name">
       <label for="a-texte">Ton avis</label>
       <textarea id="a-texte" maxlength="600" placeholder="Ta pose, l'accueil, l'ambiance…"></textarea>
+      <label>Une photo de tes ongles <span style="font-weight:400;color:var(--muted)">(facultatif)</span></label>
+      <label class="photo-pick" for="a-photo" id="photoPick">📷 Ajouter une photo</label>
+      <input type="file" id="a-photo" accept="image/*" class="hidden">
+      <div class="photo-zone hidden" id="photoZone"><img id="photoApercu" alt="Aperçu de ta photo"><button type="button" class="back" id="photoRetirer">✕ Retirer la photo</button></div>
       <div class="err" id="errAvis"></div>
       <button class="btn full" id="envoyerAvis" type="submit">Envoyer mon avis</button>
     </form>
@@ -430,14 +438,49 @@ function chargerAvis() {
     $('avisListe').innerHTML = liste.map(function (a) {
       var quand = a.date ? fromIso(a.date).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '';
       return '<div class="avis-item"><div class="haut"><span class="qui">' + esc(a.prenom) + ' <span class="stars">' + etoiles(a.note) + '</span></span>' +
-        '<span class="quand">' + esc(quand) + '</span></div><p>' + esc(a.texte) + '</p></div>';
+        '<span class="quand">' + esc(quand) + '</span></div><p>' + esc(a.texte) + '</p>' +
+        (a.photo ? '<a href="' + esc(a.photo) + '" target="_blank" rel="noopener"><img src="' + esc(a.photo) + '" loading="lazy" alt="Photo de ' + esc(a.prenom) + '"></a>' : '') + '</div>';
     }).join('');
   }).catch(function () {
     $('avisListe').innerHTML = '';
   });
 }
 
-var noteAvis = 0;
+var noteAvis = 0, photoAvis = '';
+function retirerPhoto() {
+  photoAvis = '';
+  $('a-photo').value = '';
+  $('photoZone').classList.add('hidden');
+  $('photoPick').classList.remove('hidden');
+}
+$('photoRetirer').onclick = retirerPhoto;
+$('a-photo').onchange = function () {
+  var f = this.files && this.files[0];
+  if (!f) return;
+  $('errAvis').textContent = '';
+  $('photoPick').textContent = 'Chargement de la photo…';
+  var url = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    var max = 1200, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+    var c = document.createElement('canvas');
+    c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    photoAvis = c.toDataURL('image/jpeg', 0.82);
+    $('photoApercu').src = photoAvis;
+    $('photoPick').textContent = '📷 Ajouter une photo';
+    $('photoPick').classList.add('hidden');
+    $('photoZone').classList.remove('hidden');
+  };
+  img.onerror = function () {
+    URL.revokeObjectURL(url);
+    retirerPhoto();
+    $('photoPick').textContent = '📷 Ajouter une photo';
+    $('errAvis').textContent = 'Impossible de lire cette photo, essaie avec une autre.';
+  };
+  img.src = url;
+};
 $('etoiles').querySelectorAll('button').forEach(function (b) {
   b.onclick = function () {
     noteAvis = +b.dataset.n;
@@ -451,7 +494,7 @@ $('btnAvis').onclick = function () {
 };
 $('formAvis').onsubmit = function (e) {
   e.preventDefault();
-  var d = { note: noteAvis, prenom: $('a-prenom').value.trim(), texte: $('a-texte').value.trim() };
+  var d = { note: noteAvis, prenom: $('a-prenom').value.trim(), texte: $('a-texte').value.trim(), photo: photoAvis };
   if (!d.note) { $('errAvis').textContent = 'Choisis une note en cliquant sur les étoiles.'; return; }
   if (!d.prenom) { $('errAvis').textContent = 'Indique ton prénom.'; return; }
   if (d.texte.length < 3) { $('errAvis').textContent = 'Écris quelques mots sur ton expérience.'; return; }
@@ -460,6 +503,7 @@ $('formAvis').onsubmit = function (e) {
   api('laisserAvis', d).then(function () {
     $('formAvis').classList.add('hidden');
     $('merciAvis').classList.remove('hidden');
+    retirerPhoto();
     chargerAvis();
   }).catch(function (err) {
     $('errAvis').textContent = err.message || 'Une erreur est survenue, réessaie.';
