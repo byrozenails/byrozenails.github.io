@@ -654,6 +654,8 @@ api('getInfos').then(function (infos) {
   chargerAvis();
   aller(1, true);
   historique_('replace', 1);
+  // Lien « Laisser un avis » du mail envoyé après le RDV : on ouvre directement le formulaire
+  if (/avis/.test(location.search)) setTimeout(function () { $('btnAvis').click(); }, 700);
 }).catch(function (e) {
   $('prestas').innerHTML = '<div class="info">Le site est momentanément indisponible.<br>' + esc(e.message || '') + '</div>';
 });
