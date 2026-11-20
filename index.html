@@ -332,6 +332,14 @@ function afficherJours() {
   else $('slots').innerHTML = '<div class="info">Aucune date disponible pour le moment.</div>';
 }
 
+// Réservé à partir de 19h la veille (ou le jour même) : Roze doit confirmer
+function aConfirmer(s) {
+  var veille = fromIso(s);
+  veille.setDate(veille.getDate() - 1);
+  veille.setHours(19, 0, 0, 0);
+  return Date.now() >= veille.getTime();
+}
+
 function choisirJour(s) {
   S.date = s;
   $('days').querySelectorAll('.day').forEach(function (b) { b.classList.toggle('sel', b.dataset.d === s); });
@@ -356,13 +364,9 @@ function choisirJour(s) {
     var matin = liste.filter(function (c) { return c.h < '13:00'; });
     var aprem = liste.filter(function (c) { return c.h >= '13:00'; });
     var aucun = !liste.some(function (c) { return c.libre; });
-    var dansJours = Math.round((fromIso(s) - fromIso(iso(new Date()))) / 86400000);
-    var avis = dansJours === 0
-      ? '<div class="info" style="padding:14px 0 0">Pas de réservation le jour même 🙏 Choisis un autre jour.</div>'
-      : dansJours === 1
-        ? '<p style="background:#fff4e0;color:#7a4b00;border-radius:12px;padding:12px 14px;margin-top:14px;font-size:.9rem">⏳ Rendez-vous pour <b>demain</b> : réservable jusqu’à 19h aujourd’hui, et <b>Roze doit confirmer</b> ton rendez-vous. Tu recevras un mail dès qu’elle l’a validé.</p>'
-        : '';
-    if (dansJours === 0) aucun = false;
+    var avis = aConfirmer(s) && !aucun
+      ? '<p style="background:#fff4e0;color:#7a4b00;border-radius:12px;padding:12px 14px;margin-top:14px;font-size:.9rem">⏳ Il est plus de 19h la veille : <b>Roze doit confirmer</b> ton rendez-vous. Tu recevras un mail dès qu’elle l’a validé.</p>'
+      : '';
     $('slots').innerHTML = avis +
       (aucun ? '<div class="info" style="padding:14px 0 0">Complet ce jour-là 😕 Essaie un autre jour.</div>' : '') +
       bloc('Matin', matin) + bloc('Après-midi', aprem) +
@@ -382,8 +386,8 @@ function choisirHeure(h) {
   $('recap3').innerHTML = '<b>' + esc(S.presta.nom) + '</b> · ' + S.presta.prix + ' €<br>' +
     dateLongue(S.date) + ' à ' + h.replace(':', 'h');
   $('err').textContent = '';
-  S.demain = Math.round((fromIso(S.date) - fromIso(iso(new Date()))) / 86400000) === 1;
-  if (S.demain) $('recap3').innerHTML += '<br><small>⏳ Rendez-vous pour demain : Roze doit le confirmer.</small>';
+  S.demain = aConfirmer(S.date);
+  if (S.demain) $('recap3').innerHTML += '<br><small>⏳ Réservation après 19h la veille : Roze doit la confirmer.</small>';
   $('valider').textContent = S.demain ? 'Envoyer ma demande' : 'Confirmer la réservation';
   aller(3);
 }
