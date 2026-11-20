@@ -78,11 +78,13 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 20px 30
 .photo-pick{display:flex;justify-content:center;align-items:center;width:100%;padding:13px 14px;border:1px dashed var(--accent);border-radius:12px;background:#fff;color:var(--accent);font-weight:600;cursor:pointer}
 .photo-zone{display:flex;align-items:center;gap:12px}
 .photo-zone img{width:110px;height:110px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
-.regles{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-top:18px;font-size:.88rem}
-.regles h3{font-size:1rem;margin-bottom:8px}
-.regles ul{padding-left:18px;margin:0}
-.regles li{margin:5px 0}
-.regle-ok{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-weight:600;font-size:.88rem;cursor:pointer}
+.regles{background:linear-gradient(135deg,#fbf1ea 0%,#f4e2d6 100%);border:1px solid #ead2c2;border-radius:var(--r);padding:16px;margin-top:20px;font-size:.88rem;box-shadow:0 4px 14px rgba(143,110,87,.08)}
+.regles h3{font-size:1.05rem;margin-bottom:10px;color:#8f6e57;text-align:center}
+.regles ul{list-style:none;padding:0;margin:0}
+.regles li{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.7);border-radius:12px;padding:9px 11px;margin:7px 0;line-height:1.45}
+.regles li .ico{flex:none;font-size:1.1rem;line-height:1.3}
+.regles li b{color:#8f6e57}
+.regle-ok{display:flex;gap:10px;align-items:flex-start;margin-top:12px;background:#fff;border:1px dashed #d9b9a3;border-radius:12px;padding:10px 12px;color:#6b5243;font-weight:600;font-size:.88rem;cursor:pointer}
 .regle-ok input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--accent)}
 .etoiles{display:flex;gap:6px}
 .etoiles button{background:none;border:0;font-size:2rem;line-height:1;color:#d9cbbd;cursor:pointer;padding:0 2px}
@@ -145,15 +147,15 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 20px 30
       <input type="file" id="i-photo" accept="image/*" class="hidden">
       <div class="photo-zone hidden" id="iZone"><img id="iApercu" alt="Aperçu de ton inspiration"><button type="button" class="back" id="iRetirer">✕ Retirer la photo</button></div>
       <div class="regles">
-        <h3>📋 Règles du studio</h3>
+        <h3>🌸 Les règles du studio</h3>
         <ul>
-          <li><b>Viens avec ton inspiration</b> et sache ce que tu veux : sinon le rendez-vous prend beaucoup plus de temps.</li>
-          <li><b>Prévois du temps :</b> une prestation peut durer plus longtemps que prévu. Une dépose, par exemple, peut prendre jusqu’à 45 min, car elle est faite en douceur avec des produits qui préservent ton ongle naturel. Si tu es pressée, choisis plutôt un autre créneau.</li>
-          <li><b>Tests de vernis :</b> tu peux en essayer 1 ou 2. Au-delà, ils sont facturés : ce sont des vernis de qualité et chaque flacon ouvert a un coût.</li>
-          <li><b>Respect :</b> merci de respecter le travail réalisé ainsi que le fonctionnement du studio.</li>
-          <li><b>Aucun manque de respect ne sera toléré.</b></li>
+          <li><span class="ico">✨</span><span><b>Viens avec ton inspiration</b> et sache ce que tu veux : sinon le rendez-vous prend beaucoup plus de temps.</span></li>
+          <li><span class="ico">⏳</span><span><b>Prévois du temps :</b> une prestation peut durer plus longtemps que prévu. Une dépose, par exemple, peut prendre jusqu’à 45 min, car elle est faite en douceur avec des produits qui préservent ton ongle naturel. Si tu es pressée, choisis plutôt un autre créneau.</span></li>
+          <li><span class="ico">💅</span><span><b>Tests de vernis :</b> tu peux en essayer 1 ou 2. Au-delà, ils sont facturés : ce sont des vernis de qualité et chaque flacon ouvert a un coût.</span></li>
+          <li><span class="ico">🤍</span><span><b>Respect :</b> merci de respecter le travail réalisé ainsi que le fonctionnement du studio.</span></li>
+          <li><span class="ico">🚫</span><span><b>Aucun manque de respect ne sera toléré.</b></span></li>
         </ul>
-        <label class="regle-ok"><input type="checkbox" id="f-regles"> J’ai lu et j’accepte les règles du studio</label>
+        <label class="regle-ok"><input type="checkbox" id="f-regles"> J’ai lu et j’accepte les règles du studio 💕</label>
       </div>
       <div class="err" id="err"></div>
       <button class="btn full" id="valider" type="submit">Confirmer la réservation</button>
