@@ -52,7 +52,7 @@ h2{font-family:Fraunces,Georgia,serif;font-size:1.35rem;font-weight:600;margin-b
 .legende i.g{background:#ece5dd;border-color:#ece5dd}
 .info{color:var(--muted);text-align:center;padding:26px 0;font-size:.94rem}
 label{display:block;font-size:.85rem;font-weight:500;margin:14px 0 5px}
-input,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}
+input,textarea,select{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}
 input:focus,textarea:focus{outline:3px solid var(--accent-soft);border-color:var(--accent)}
 textarea{resize:vertical;min-height:70px}
 .err{color:#b3261e;font-size:.9rem;margin-top:12px}
@@ -78,6 +78,12 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 20px 30
 .photo-pick{display:flex;justify-content:center;align-items:center;width:100%;padding:13px 14px;border:1px dashed var(--accent);border-radius:12px;background:#fff;color:var(--accent);font-weight:600;cursor:pointer}
 .photo-zone{display:flex;align-items:center;gap:12px}
 .photo-zone img{width:110px;height:110px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+.regles{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-top:18px;font-size:.88rem}
+.regles h3{font-size:1rem;margin-bottom:8px}
+.regles ul{padding-left:18px;margin:0}
+.regles li{margin:5px 0}
+.regle-ok{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-weight:600;font-size:.88rem;cursor:pointer}
+.regle-ok input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--accent)}
 .etoiles{display:flex;gap:6px}
 .etoiles button{background:none;border:0;font-size:2rem;line-height:1;color:#d9cbbd;cursor:pointer;padding:0 2px}
 .etoiles button.on{color:#c49a6c}
@@ -124,8 +130,30 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 20px 30
       <label for="f-email">Email (pour ta confirmation)</label>
       <input id="f-email" type="email" autocomplete="email" required>
       <p class="hint">⚠️ Le mail de confirmation arrive souvent dans les <b>spams / courrier indésirable</b>.</p>
-      <label for="f-note">Une précision ? (facultatif)</label>
-      <textarea id="f-note" placeholder="Couleur, forme, nail art…"></textarea>
+      <label for="f-depose">As-tu des ongles à déposer ?</label>
+      <select id="f-depose" required>
+        <option value="">Choisis…</option>
+        <option>Non, ongles naturels</option>
+        <option>Oui, une pose faite par Roze</option>
+        <option>Oui, une pose faite par une autre prothésiste</option>
+      </select>
+      <label for="f-note">Ce que tu veux</label>
+      <textarea id="f-note" maxlength="800" placeholder="Forme (amande, carré, coffin…), longueur, couleur(s), french, nail art… Sois le plus précise possible 💅"></textarea>
+      <p class="hint" style="color:var(--muted)">Viens avec ton inspiration et sache ce que tu veux : le matériel sera prêt à ton arrivée.</p>
+      <label>Photo d’inspiration <span style="font-weight:400;color:var(--muted)">(facultatif, conseillé)</span></label>
+      <label class="photo-pick" for="i-photo" id="iPick">📷 Ajouter une photo d’inspiration</label>
+      <input type="file" id="i-photo" accept="image/*" class="hidden">
+      <div class="photo-zone hidden" id="iZone"><img id="iApercu" alt="Aperçu de ton inspiration"><button type="button" class="back" id="iRetirer">✕ Retirer la photo</button></div>
+      <div class="regles">
+        <h3>📋 Règles du studio</h3>
+        <ul>
+          <li><b>Viens avec ton inspiration</b> et sache ce que tu veux : sinon le rendez-vous prend beaucoup plus de temps.</li>
+          <li><b>Tests de vernis :</b> tu peux en essayer 1 ou 2. Au-delà, ils sont facturés : ce sont des vernis de qualité et chaque flacon ouvert a un coût.</li>
+          <li><b>Respecte son travail.</b> C’est le studio de Roze : c’est elle qui le gère comme elle le souhaite.</li>
+          <li><b>Aucun manque de respect ne sera toléré.</b></li>
+        </ul>
+        <label class="regle-ok"><input type="checkbox" id="f-regles"> J’ai lu et j’accepte les règles du studio</label>
+      </div>
       <div class="err" id="err"></div>
       <button class="btn full" id="valider" type="submit">Confirmer la réservation</button>
     </form>
@@ -397,11 +425,15 @@ $('form').onsubmit = function (e) {
   var d = {
     prestationId: S.presta.id, date: S.date, heure: S.heure,
     nom: $('f-nom').value.trim(), tel: $('f-tel').value.trim(),
-    email: $('f-email').value.trim(), note: $('f-note').value.trim()
+    email: $('f-email').value.trim(), note: $('f-note').value.trim(),
+    depose: $('f-depose').value, regles: $('f-regles').checked, photo: photoInspi
   };
   if (!d.nom) return erreur('Indique ton prénom et ton nom.');
   if (d.tel.replace(/\D/g, '').length < 10) return erreur('Ton numéro de téléphone n’a pas l’air complet.');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) return erreur('Ton adresse email n’a pas l’air valide.');
+  if (!d.depose) return erreur('Indique si tu as des ongles à déposer.');
+  if (d.note.length < 5) return erreur('Décris ce que tu veux (forme, longueur, couleurs, nail art…).');
+  if (!d.regles) return erreur('Coche la case pour accepter les règles du studio.');
 
   var b = $('valider');
   b.disabled = true; b.textContent = 'Réservation en cours…';
@@ -427,6 +459,7 @@ function retour() { aller(Math.max(1, ETAPE - 1)); }
 function recommencer() {
   S.presta = null; S.heure = null;
   $('form').reset();
+  retirerInspi();
   aller(1);
 }
 
@@ -464,6 +497,47 @@ function chargerAvis() {
     $('avisListe').innerHTML = '';
   });
 }
+
+/* ---------- Photos : réduction avant envoi ---------- */
+function reduirePhoto(f, ok, ko) {
+  var url = URL.createObjectURL(f);
+  var img = new Image();
+  img.onload = function () {
+    var max = 1200, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+    var c = document.createElement('canvas');
+    c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    ok(c.toDataURL('image/jpeg', 0.82));
+  };
+  img.onerror = function () { URL.revokeObjectURL(url); ko(); };
+  img.src = url;
+}
+
+var photoInspi = '';
+function retirerInspi() {
+  photoInspi = '';
+  $('i-photo').value = '';
+  $('iZone').classList.add('hidden');
+  $('iPick').classList.remove('hidden');
+  $('iPick').textContent = '📷 Ajouter une photo d’inspiration';
+}
+$('iRetirer').onclick = retirerInspi;
+$('i-photo').onchange = function () {
+  var f = this.files && this.files[0];
+  if (!f) return;
+  $('err').textContent = '';
+  $('iPick').textContent = 'Chargement de la photo…';
+  reduirePhoto(f, function (data) {
+    photoInspi = data;
+    $('iApercu').src = data;
+    $('iPick').classList.add('hidden');
+    $('iZone').classList.remove('hidden');
+  }, function () {
+    retirerInspi();
+    $('err').textContent = 'Impossible de lire cette photo, essaie avec une autre.';
+  });
+};
 
 var noteAvis = 0, photoAvis = '';
 function retirerPhoto() {
