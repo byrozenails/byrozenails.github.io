@@ -157,6 +157,8 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 20px 30
           <li><span class="ico">⏳</span><span><b>Prévois du temps :</b> une prestation peut durer plus longtemps que prévu. Une dépose, par exemple, peut prendre jusqu’à 45 min, car elle est faite en douceur avec des produits qui préservent ton ongle naturel. Si tu es pressée, choisis plutôt un autre créneau.</span></li>
           <li><span class="ico">💅</span><span><b>Tests de vernis :</b> tu peux en essayer 1 ou 2. Au-delà, ils sont facturés : ce sont des vernis de qualité et chaque flacon ouvert a un coût.</span></li>
           <li><span class="ico">🤍</span><span><b>Respect :</b> merci de respecter le travail réalisé ainsi que le fonctionnement du studio.</span></li>
+          <li><span class="ico">📵</span><span><b>Absence :</b> une absence sans prévenir au moins 24 h avant empêche de reprendre rendez-vous en ligne. La veille, tu reçois un mail pour confirmer ta venue.</span></li>
+          <li><span class="ico">🌙</span><span><b>Créneaux exceptionnels</b> (soir, dimanche) : un acompte de 5 € est demandé pour valider le rendez-vous. Il est déduit du prix, et gardé en cas d’absence ou d’annulation moins de 24 h avant.</span></li>
           <li><span class="ico">🚫</span><span><b>Aucun manque de respect ne sera toléré.</b></span></li>
         </ul>
         <label class="regle-ok"><input type="checkbox" id="f-regles"> J’ai lu et j’accepte les règles du studio 💕</label>
@@ -410,7 +412,7 @@ function choisirJour(s) {
           ? '<div class="exc-toggle">🌙 Le studio est fermé le dimanche</div>'
           : '<button type="button" class="exc-toggle" id="excBtn">🌙 Besoin d’un créneau en soirée (après 20h) ? ▾</button>') +
         '<div id="excZone"' + (dim ? '' : ' class="hidden"') + '>' +
-        '<p class="exc-info">Créneau <b>exceptionnel, sur demande</b> : supplément de <b>' + supp + ' €</b>, et <b>Roze doit confirmer</b> ton rendez-vous.</p>' +
+        '<p class="exc-info">Créneau <b>exceptionnel, sur demande</b> : supplément de <b>' + supp + ' €</b>, <b>Roze doit confirmer</b> ton rendez-vous, et un <b>acompte de 5 €</b> est demandé pour le valider.</p>' +
         '<div class="slots">' + excs.map(function (c) {
           return '<button class="slot exc-slot" data-h="' + c.h + '"' + (c.libre ? '' : ' disabled title="Indisponible"') + '>' +
             c.h.replace(':', 'h') + '</button>';
@@ -445,7 +447,7 @@ function choisirHeure(h) {
   var cr = (S.creneaux || []).filter(function (x) { return x.h === h; })[0] || {};
   S.supp = cr.supp || 0;
   S.demain = !!cr.exc || aConfirmer(S.date);
-  if (cr.exc) $('recap3').innerHTML += '<br><small>🌙 Créneau exceptionnel : supplément de ' + S.supp + ' € (total ' + (S.presta.prix + S.supp) + ' €). Roze doit confirmer ton rendez-vous.</small>';
+  if (cr.exc) $('recap3').innerHTML += '<br><small>🌙 Créneau exceptionnel : supplément de ' + S.supp + ' € (total ' + (S.presta.prix + S.supp) + ' €). Roze doit confirmer ton rendez-vous, et un acompte de 5 € est demandé pour le valider.</small>';
   else if (S.demain) $('recap3').innerHTML += '<br><small>⏳ Réservation après 19h la veille : Roze doit la confirmer.</small>';
   $('valider').textContent = S.demain ? 'Envoyer ma demande' : 'Confirmer la réservation';
   aller(3);
