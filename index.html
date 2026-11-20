@@ -50,6 +50,10 @@ h2{font-family:Fraunces,Georgia,serif;font-size:1.35rem;font-weight:600;margin-b
 .legende{font-size:.8rem;color:var(--muted);margin-top:14px;display:flex;gap:14px}
 .legende i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px;margin-right:5px;border:1px solid var(--line);background:#fff}
 .legende i.g{background:#ece5dd;border-color:#ece5dd}
+.exc{margin-top:20px;border:1px dashed #d9b9a3;border-radius:var(--r);padding:14px;background:linear-gradient(135deg,#fbf1ea,#f4e2d6)}
+.exc-toggle{width:100%;background:none;border:0;font:600 .92rem Inter,system-ui,sans-serif;color:#8f6e57;cursor:pointer;text-align:left;padding:0}
+.exc-info{font-size:.85rem;color:#6b5243;margin-top:8px}
+.slot.exc-slot{border-color:#d9b9a3}
 .info{color:var(--muted);text-align:center;padding:26px 0;font-size:.94rem}
 label{display:block;font-size:.85rem;font-weight:500;margin:14px 0 5px}
 input,textarea,select{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}
@@ -392,16 +396,37 @@ function choisirJour(s) {
           c.h.replace(':', 'h') + '</button>';
       }).join('') + '</div>';
     }
-    var matin = liste.filter(function (c) { return c.h < '13:00'; });
-    var aprem = liste.filter(function (c) { return c.h >= '13:00'; });
-    var aucun = !liste.some(function (c) { return c.libre; });
+    S.creneaux = liste;
+    var normaux = liste.filter(function (c) { return !c.exc; });
+    var excs = liste.filter(function (c) { return c.exc; });
+    var matin = normaux.filter(function (c) { return c.h < '13:00'; });
+    var aprem = normaux.filter(function (c) { return c.h >= '13:00'; });
+    var aucun = normaux.length && !normaux.some(function (c) { return c.libre; });
+    var blocExc = '';
+    if (excs.length) {
+      var dim = excs[0].exc === 'dimanche', supp = excs[0].supp;
+      blocExc = '<div class="exc">' +
+        (dim
+          ? '<div class="exc-toggle">🌙 Le studio est fermé le dimanche</div>'
+          : '<button type="button" class="exc-toggle" id="excBtn">🌙 Besoin d’un créneau en soirée (après 20h) ? ▾</button>') +
+        '<div id="excZone"' + (dim ? '' : ' class="hidden"') + '>' +
+        '<p class="exc-info">Créneau <b>exceptionnel, sur demande</b> : supplément de <b>' + supp + ' €</b>, et <b>Roze doit confirmer</b> ton rendez-vous.</p>' +
+        '<div class="slots">' + excs.map(function (c) {
+          return '<button class="slot exc-slot" data-h="' + c.h + '"' + (c.libre ? '' : ' disabled title="Indisponible"') + '>' +
+            c.h.replace(':', 'h') + '</button>';
+        }).join('') + '</div></div></div>';
+    }
     var avis = aConfirmer(s) && !aucun
       ? '<p style="background:#fff4e0;color:#7a4b00;border-radius:12px;padding:12px 14px;margin-top:14px;font-size:.9rem">⏳ Il est plus de 19h la veille : <b>Roze doit confirmer</b> ton rendez-vous. Tu recevras un mail dès qu’elle l’a validé.</p>'
       : '';
     $('slots').innerHTML = avis +
       (aucun ? '<div class="info" style="padding:14px 0 0">Complet ce jour-là 😕 Essaie un autre jour.</div>' : '') +
-      bloc('Matin', matin) + bloc('Après-midi', aprem) +
+      bloc('Matin', matin) + bloc('Après-midi', aprem) + blocExc +
       '<div class="legende"><span><i></i>Disponible</span><span><i class="g"></i>Déjà pris</span></div>';
+    if ($('excBtn')) $('excBtn').onclick = function () {
+      $('excZone').classList.toggle('hidden');
+      this.textContent = this.textContent.replace(/[▾▴]$/, $('excZone').classList.contains('hidden') ? '▾' : '▴');
+    };
     $('slots').querySelectorAll('.slot:not([disabled])').forEach(function (b) {
       b.onclick = function () { choisirHeure(b.dataset.h); };
     });
@@ -417,8 +442,11 @@ function choisirHeure(h) {
   $('recap3').innerHTML = '<b>' + esc(S.presta.nom) + '</b> · ' + S.presta.prix + ' €<br>' +
     dateLongue(S.date) + ' à ' + h.replace(':', 'h');
   $('err').textContent = '';
-  S.demain = aConfirmer(S.date);
-  if (S.demain) $('recap3').innerHTML += '<br><small>⏳ Réservation après 19h la veille : Roze doit la confirmer.</small>';
+  var cr = (S.creneaux || []).filter(function (x) { return x.h === h; })[0] || {};
+  S.supp = cr.supp || 0;
+  S.demain = !!cr.exc || aConfirmer(S.date);
+  if (cr.exc) $('recap3').innerHTML += '<br><small>🌙 Créneau exceptionnel : supplément de ' + S.supp + ' € (total ' + (S.presta.prix + S.supp) + ' €). Roze doit confirmer ton rendez-vous.</small>';
+  else if (S.demain) $('recap3').innerHTML += '<br><small>⏳ Réservation après 19h la veille : Roze doit la confirmer.</small>';
   $('valider').textContent = S.demain ? 'Envoyer ma demande' : 'Confirmer la réservation';
   aller(3);
 }
