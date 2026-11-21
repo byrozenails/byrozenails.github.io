@@ -25,6 +25,9 @@ h2{font-family:Fraunces,Georgia,serif;font-size:1.35rem;font-weight:600;margin-b
 .card h3{font-size:1rem;font-weight:600}
 .card p{color:var(--muted);font-size:.86rem;margin-top:2px}
 .card .px{font-size:.86rem;margin-top:6px;font-weight:500}
+.choix{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.chip{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:.8rem;font-weight:500;cursor:pointer;font-family:inherit}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn{background:var(--accent);color:#fff;border:0;border-radius:999px;padding:10px 18px;font:600 .92rem Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap;transition:opacity .2s}
 .btn:disabled{opacity:.5;cursor:default}
 .btn.full{width:100%;padding:15px;font-size:1rem;margin-top:18px}
@@ -366,14 +369,31 @@ function prixTexte(p) {
   return prixDe(p, iso(new Date())) + ' €';
 }
 
+// Les prestations d'un même « groupe » (ex. nail art, Cat Eye) tiennent dans une seule carte, avec un choix
+function cartePresta(liste, groupe) {
+  var cur = liste.filter(function (x) { return x.id === S.sel[groupe]; })[0] || liste[0], p0 = liste[0];
+  return '<div class="card"><div><h3>' + esc(p0.titre || p0.nom) + '</h3>' +
+    (p0.description ? '<p>' + esc(p0.description) + '</p>' : '') +
+    (liste.length > 1 ? '<div class="choix">' + liste.map(function (x) {
+      return '<button type="button" class="chip' + (x === cur ? ' on' : '') + '" data-g="' + esc(groupe) + '" data-id="' + esc(x.id) + '">' + esc(x.choix) + '</button>';
+    }).join('') + '</div>' : '') +
+    '<div class="px">' + prixTexte(cur) + '</div></div>' +
+    '<button class="btn" data-id="' + esc(cur.id) + '">Choisir</button></div>';
+}
 function afficherPrestas() {
-  $('prestas').innerHTML = S.infos.prestations.map(function (p) {
-    return '<div class="card"><div><h3>' + esc(p.nom) + '</h3>' +
-      (p.description ? '<p>' + esc(p.description) + '</p>' : '') +
-      '<div class="px">' + prixTexte(p) + '</div></div>' +
-      '<button class="btn" data-id="' + esc(p.id) + '">Choisir</button></div>';
-  }).join('');
-  $('prestas').querySelectorAll('button').forEach(function (b) {
+  var L = S.infos.prestations, vus = {}, html = '';
+  S.sel = S.sel || {};
+  L.forEach(function (p) {
+    if (!p.groupe) { html += cartePresta([p], ''); return; }
+    if (vus[p.groupe]) return;
+    vus[p.groupe] = 1;
+    html += cartePresta(L.filter(function (x) { return x.groupe === p.groupe; }), p.groupe);
+  });
+  $('prestas').innerHTML = html;
+  $('prestas').querySelectorAll('.chip').forEach(function (b) {
+    b.onclick = function () { S.sel[b.dataset.g] = b.dataset.id; afficherPrestas(); };
+  });
+  $('prestas').querySelectorAll('.btn').forEach(function (b) {
     b.onclick = function () { choisirPresta(b.dataset.id); };
   });
 }
